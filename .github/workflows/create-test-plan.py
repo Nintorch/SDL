@@ -573,10 +573,11 @@ def spec_to_job(spec: JobSpec, key: str, trackmem_symbol_names: bool, ctest_args
             ))
             job.cflags.extend((
                 "-gsource-map",
-                "-ffile-prefix-map=${PWD}=/SDL", "-fsanitize=address",
+                "-ffile-prefix-map=${PWD}=/SDL", "-fsanitize=address", "-O3",
             ))
             job.ldflags.extend((
-                "--source-map-base", "/", "-fsanitize=address", "--bind", "-s", "ASYNCIFY",
+                "--source-map-base", "/", "-fsanitize=address", "--bind", "-O3", 
+                "-s", "ASYNCIFY", "-s", "ASSERTIONS", "-s", "ALLOW_MEMORY_GROWTH",
             ))
             pretest_cmd.extend((
                 "# Start local HTTP server",

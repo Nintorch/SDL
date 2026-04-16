@@ -4368,13 +4368,6 @@ if(SDL_TESTS)
   add_subdirectory(test)
 endif()
 
-##### Examples subproject (must appear after the install/uninstall targets) #####
-
-if(SDL_EXAMPLES)
-  set(HAVE_EXAMPLES ON)
-  add_subdirectory(examples)
-endif()
-
 ##### Fix Objective C builds #####
 string(APPEND CMAKE_OBJC_FLAGS " ${CMAKE_C_FLAGS}")
 

@@ -1719,34 +1719,11 @@ elseif(EMSCRIPTEN)
   endif()
 
   if(SDL_JOYSTICK)
-    set(CMAKE_CXX_STANDARD 20)
-    enable_language(CXX)
-
     set(SDL_JOYSTICK_EMSCRIPTEN 1)
     sdl_glob_sources(
       "${SDL3_SOURCE_DIR}/src/joystick/emscripten/*.c"
       "${SDL3_SOURCE_DIR}/src/joystick/emscripten/*.h"
     )
-    set(LIBUSB_ROOT "${SDL3_SOURCE_DIR}/libusb/libusb")
-    sdl_glob_sources(
-      "${LIBUSB_ROOT}/core.c"
-      "${LIBUSB_ROOT}/descriptor.c"
-      "${LIBUSB_ROOT}/hotplug.c"
-      "${LIBUSB_ROOT}/io.c"
-      "${LIBUSB_ROOT}/libusb.h"
-      "${LIBUSB_ROOT}/libusbi.h"
-      "${LIBUSB_ROOT}/strerror.c"
-      "${LIBUSB_ROOT}/sync.c"
-      "${LIBUSB_ROOT}/version.h"
-      "${LIBUSB_ROOT}/version_nano.h"
-      "${LIBUSB_ROOT}/os/events_posix.c"
-      "${LIBUSB_ROOT}/os/events_posix.h"
-      "${LIBUSB_ROOT}/os/threads_posix.c"
-      "${LIBUSB_ROOT}/os/threads_posix.h"
-      "${LIBUSB_ROOT}/os/emscripten_webusb.cpp"
-    )
-    sdl_compile_options(PRIVATE -pthread)
-    sdl_include_directories(PRIVATE "${SDL3_SOURCE_DIR}/libusb/libusb/os/")
     set(HAVE_SDL_JOYSTICK TRUE)
   endif()
 

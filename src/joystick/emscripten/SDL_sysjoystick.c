@@ -85,12 +85,12 @@ static int SDL_GetEmscriptenJoystickProduct(int device_index)
     }, device_index);
 }
 
-static int SDL_IsEmscriptenJoystickXInput(int device_index)
+static bool SDL_IsEmscriptenJoystickXInput(int device_index)
 {
     return MAIN_THREAD_EM_ASM_INT({
         let gamepad = navigator['getGamepads']()[$0];
         if (!gamepad) {
-            return 0;
+            return false;
         }
 
         // Chrome, Edge, Opera: Xbox 360 Controller (XInput STANDARD GAMEPAD)
@@ -100,16 +100,70 @@ static int SDL_IsEmscriptenJoystickXInput(int device_index)
     }, device_index);
 }
 
+static bool SDL_ShouldIgnoreJoystickEmscripten(int device_index)
+{
+    return MAIN_THREAD_EM_ASM_INT({
+        let gamepads = navigator['getGamepads']();
+        if (!gamepads) {
+            return true;
+        }
+        let gamepad = gamepads[$0];
+        if (!gamepad) {
+            return true;
+        }
+
+        // DualSense support in Firefox is very bad (input lag, no dpad, wrong face buttons, no vibration),
+        // I'm not sure it can be fixed in SDL, so we just ignore the controller.
+        let is_firefox = navigator['userAgent']['toLowerCase']()['includes']('firefox');
+        let is_dualsense = gamepad['id']['toLowerCase']()['includes']('dualsense');
+        if (is_firefox && is_dualsense) {
+            return true;
+        }
+
+        return false;
+    }, device_index);
+}
+
+static int SDL_GetEmscriptenOSID()
+{
+	return MAIN_THREAD_EM_ASM_INT({
+        const os = ([
+            'Android',
+            'Linux',
+            'iPhone',
+            'Macintosh',
+            'Windows',
+        ]);
+		const ua = navigator['userAgent'];
+        for (let i in os) {
+            if (ua['indexOf'](os[i]) >= 0) {
+                return parseInt(i) + 1;
+            }
+        }
+		return 0;
+	});
+}
+
+static const char* SDL_EmscriptenOSNames[] = {
+	NULL,
+	"(Android)",
+	"(Linux)",
+	"(iPhone)",
+	"(Macintosh)",
+	"(Windows)",
+};
+
 static EM_BOOL Emscripten_JoyStickConnected(int eventType, const EmscriptenGamepadEvent *gamepadEvent, void *userData)
 {
     SDL_joylist_item *item;
     int i;
-    Uint16 vendor, product;
+    Uint16 vendor, product, os_id;
     bool is_xinput;
+	const char *os_name = NULL;
 
     SDL_LockJoysticks();
-
-    if (JoystickByIndex(gamepadEvent->index) != NULL) {
+    
+    if (JoystickByIndex(gamepadEvent->index) != NULL || SDL_ShouldIgnoreJoystickEmscripten(gamepadEvent->index)) {
         goto done;
     }
 
@@ -125,26 +179,31 @@ static EM_BOOL Emscripten_JoyStickConnected(int eventType, const EmscriptenGamep
     product = SDL_GetEmscriptenJoystickProduct(gamepadEvent->index);
     is_xinput = SDL_IsEmscriptenJoystickXInput(gamepadEvent->index);
 
-    // Use a generic VID/PID representing an XInput controller
     if (!vendor && !product && is_xinput) {
+        // Use a generic VID/PID representing an XInput controller.
         vendor = USB_VENDOR_MICROSOFT;
         product = USB_PRODUCT_XBOX360_XUSB_CONTROLLER;
     }
+    
+	os_id = SDL_GetEmscriptenOSID();
+	os_name = SDL_EmscriptenOSNames[os_id];
 
-    item->name = SDL_CreateJoystickName(vendor, product, NULL, gamepadEvent->id);
+    if ((SDL_strcmp(gamepadEvent->mapping, "standard") == 0) || is_xinput) {
+        // We should differentiate between devices that are mapped or unmapped by the browser.
+        os_id += 0x100;
+    }
+
+    item->name = SDL_CreateJoystickName(vendor, product, os_name, gamepadEvent->id);
+
     if (!item->name) {
         SDL_free(item);
         goto done;
     }
 
-    if (vendor && product) {
-        item->guid = SDL_CreateJoystickGUID(SDL_HARDWARE_BUS_UNKNOWN, vendor, product, 0, NULL, item->name, 0, 0);
-    } else {
-        item->guid = SDL_CreateJoystickGUIDForName(item->name);
-    }
+    item->guid = SDL_CreateJoystickGUID(SDL_HARDWARE_BUS_USB, vendor, product, os_id, os_name, gamepadEvent->id, 0, 0);
 
     if (is_xinput) {
-        item->guid.data[14] = 'x'; // See SDL_IsJoystickXInput
+        item->guid.data[14] = 'x'; // See SDL_IsJoystickXInput().
     }
 
     item->mapping = SDL_strdup(gamepadEvent->mapping);

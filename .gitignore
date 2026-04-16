@@ -12,9 +12,6 @@ __pycache__
 *.o
 *.obj
 *.res
-*.lib
-*.a
-*.la
 *.dSYM
 *,e1f
 *,ff8
@@ -47,7 +44,6 @@ compile_commands.json
 /Makefile
 .ninja_*
 *.ninja
-*.pc
 test/*.test
 wayland-generated-protocols
 CMakeSettings.json

@@ -1668,6 +1668,8 @@ if(ANDROID)
   endif()
 
 elseif(EMSCRIPTEN)
+  enable_language(CXX)
+
   # Hide noisy warnings that intend to aid mostly during initial stages of porting a new
   # project. Uncomment at will for verbose cross-compiling -I/../ path info.
   sdl_compile_options(PRIVATE "-Wno-warn-absolute-paths")
@@ -1716,6 +1718,10 @@ elseif(EMSCRIPTEN)
       "${SDL3_SOURCE_DIR}/src/camera/emscripten/*.c"
       "${SDL3_SOURCE_DIR}/src/camera/emscripten/*.h"
     )
+  endif()
+  
+  if(SDL_HIDAPI)
+    CheckHIDAPI()
   endif()
 
   if(SDL_JOYSTICK)

@@ -1,6 +1,6 @@
 include(FindPackageHandleStandardArgs)
 
-set(LibUSB_PKG_CONFIG_SPEC libusb-1.0>=1.0.16)
+set(LibUSB_PKG_CONFIG_SPEC libusb-1.0)
 set(LibUSB_MIN_API_VERSION 0x01000102)
 
 find_package(PkgConfig QUIET)
@@ -9,16 +9,8 @@ if(PKG_CONFIG_FOUND)
   pkg_check_modules(PC_LibUSB ${LibUSB_PKG_CONFIG_SPEC})
 endif()
 
-find_library(LibUSB_LIBRARY
-  NAMES usb-1.0 libusb-1.0 usb
-  HINTS ${PC_LibUSB_LIBRARY_DIRS}
-)
-
-find_path(LibUSB_INCLUDE_PATH
-  NAMES libusb.h
-  PATH_SUFFIXES libusb-1.0
-  HINTS ${PC_LibUSB_INCLUDE_DIRS}
-)
+set(LibUSB_LIBRARY "/home/runner/work/SDL/SDL/libusb_output/lib/libusb-1.0.a")
+set(LibUSB_INCLUDE_PATH "/home/runner/work/SDL/SDL/libusb_output/include/libusb-1.0")
 
 set(LibUSB_API_VERSION "LibUSB_API_VERSION-NOTFOUND")
 if(LibUSB_INCLUDE_PATH AND EXISTS "${LibUSB_INCLUDE_PATH}/libusb.h")

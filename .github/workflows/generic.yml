@@ -47,7 +47,17 @@ jobs:
       - uses: mymindstorm/setup-emsdk@v15
         if: ${{ matrix.platform.platform == 'emscripten' }}
         with:
-          version: 3.1.35
+          version: 3.1.48
+      - name: 'Setup libusb for Emscripten'
+        if: ${{ matrix.platform.platform == 'emscripten' }}
+        run: |
+          sudo mkdir /usr/local/lib/pkgconfig
+          sudo cp /home/runner/work/SDL/SDL/libusb_output/lib/pkgconfig/libusb-1.0.pc /usr/local/lib/pkgconfig
+          export PC_LibUSB_LIBRARY_DIRS=/home/runner/work/SDL/SDL/libusb_output/lib
+          export PC_LibUSB_INCLUDE_DIRS=/home/runner/work/SDL/SDL/libusb_output/include/libusb-1.0
+
+          cd /home/runner/work/SDL/SDL/libusb_output/lib
+          ls
       - uses: browser-actions/setup-chrome@v2
         id: setup-chrome
         if: ${{ matrix.platform.platform == 'emscripten' }}

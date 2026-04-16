@@ -47,7 +47,13 @@ jobs:
       - uses: mymindstorm/setup-emsdk@v15
         if: ${{ matrix.platform.platform == 'emscripten' }}
         with:
-          version: 3.1.35
+          version: 3.1.48
+      - name: 'Download libusb for Emscripten'
+        if: ${{ matrix.platform.platform == 'emscripten' }}
+        run: |
+          git clone https://github.com/libusb/libusb
+          sudo apt update
+          sudo apt install -y autoconf automake libtool libudev-dev m4 pkg-config clang llvm
       - uses: browser-actions/setup-chrome@v2
         id: setup-chrome
         if: ${{ matrix.platform.platform == 'emscripten' }}

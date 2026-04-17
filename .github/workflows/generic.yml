@@ -51,10 +51,15 @@ jobs:
       - name: 'Setup libusb for Emscripten'
         if: ${{ matrix.platform.platform == 'emscripten' }}
         run: |
+          cd libusb
+          sudo apt update
+          sudo apt install -y autoconf automake libtool libudev-dev m4 pkg-config clang llvm
+          ./bootstrap.sh
+          mkdir ~/libusb_output
+          emconfigure .private/ci-build.sh --build-dir build-emscripten --no-test --install -- --host=wasm32-unknown-emscripten --prefix=/home/runner/work/SDL/SDL/libusb_output
+
           sudo mkdir /usr/local/lib/pkgconfig
           sudo cp /home/runner/work/SDL/SDL/libusb_output/lib/pkgconfig/libusb-1.0.pc /usr/local/lib/pkgconfig
-          export PC_LibUSB_LIBRARY_DIRS=/home/runner/work/SDL/SDL/libusb_output/lib
-          export PC_LibUSB_INCLUDE_DIRS=/home/runner/work/SDL/SDL/libusb_output/include/libusb-1.0
 
           cd /home/runner/work/SDL/SDL/libusb_output/lib
           ls

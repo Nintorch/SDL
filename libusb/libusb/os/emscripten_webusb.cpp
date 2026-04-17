@@ -35,6 +35,8 @@ static_assert((__EMSCRIPTEN_major__ * 100 * 100 + __EMSCRIPTEN_minor__ * 100 +
 
 #include "libusbi.h"
 
+#include <iostream>
+
 using namespace emscripten;
 
 #ifdef _REENTRANT
@@ -298,6 +300,7 @@ static std::invoke_result_t<Func>::AwaitResult awaitOnMain(Func&& func) {
 // A helper that makes a control transfer given a setup pointer (assumed to be
 // followed by data payload for out-transfers).
 val makeControlTransferPromise(const val& dev, libusb_control_setup* setup) {
+	std::cout << "Hello world 73211" << std::endl;
 	auto params = val::object();
 
 	const char* request_type = "unknown";
@@ -332,6 +335,7 @@ val makeControlTransferPromise(const val& dev, libusb_control_setup* setup) {
 	params.set("request", setup->bRequest);
 	params.set("value", setup->wValue);
 	params.set("index", setup->wIndex);
+	std::cout << "Hello world 73212" << std::endl;
 
 	if (setup->bmRequestType & LIBUSB_ENDPOINT_IN) {
 		return dev.call<val>("controlTransferIn", params, setup->wLength);
@@ -404,15 +408,20 @@ struct CachedDevice {
 	// Fill in the device descriptor and configurations by reading them from the
 	// WebUSB device.
 	static val initFromDevice(val&& web_usb_dev, libusb_device* libusb_dev) {
+		std::cout << "Hello world 71" << std::endl;
 		auto cachedDevicePtr = WebUsbDevicePtr(libusb_dev);
+		std::cout << "Hello world 72" << std::endl;
 		cachedDevicePtr.emplace(std::move(web_usb_dev));
+		std::cout << "Hello world 73" << std::endl;
 		bool must_close = false;
 		val result = co_await cachedDevicePtr->initFromDeviceWithoutClosing(
 			libusb_dev, must_close);
+		std::cout << "Hello world 74" << std::endl;
 		if (must_close) {
 			co_await_try(cachedDevicePtr->safeOpenCloseAssumingMainThread(
 				OpenClose::Close));
 		}
+		std::cout << "Hello world 75" << std::endl;
 		co_return std::move(result);
 	}
 
@@ -491,6 +500,7 @@ private:
 			.wIndex = 0,
 			.wLength = max_length,
 		};
+		std::cout << "Hello world 7321" << std::endl;
 		return makeControlTransferPromise(device, &setup);
 	}
 
@@ -499,7 +509,9 @@ private:
 	// we opened it successfully, and we can't use an async operation (`close`)
 	// in RAII destructor.
 	val initFromDeviceWithoutClosing(libusb_device* dev, bool& must_close) {
+		std::cout << "Hello world 731" << std::endl;
 		co_await_try(safeOpenCloseAssumingMainThread(OpenClose::Open));
+		std::cout << "Hello world 732" << std::endl;
 
 		// Can't use RAII to close on exit as co_await is not permitted in
 		// destructors (yet:
@@ -510,10 +522,13 @@ private:
 		{
 			auto result = co_await_try(
 				requestDescriptor(LIBUSB_DT_DEVICE, 0, LIBUSB_DT_DEVICE_SIZE));
+			std::cout << "Hello world 733" << std::endl;
 			if (auto error = getTransferStatus(result)) {
 				co_return error;
 			}
+			std::cout << "Hello world 734" << std::endl;
 			copyFromDataView(&dev->device_descriptor, result["data"]);
+			std::cout << "Hello world 735" << std::endl;
 		}
 
 		// Infer the device speed (which is not yet provided by WebUSB) from
@@ -606,26 +621,42 @@ unsigned long getDeviceSessionId(val& web_usb_device) {
 
 val getDeviceList(libusb_context* ctx, discovered_devs** devs) {
 	// Check if browser supports USB
+	std::cout << "Hello world 1" << std::endl;
 	val navigator_usb = val::global("navigator")["usb"];
 	if (navigator_usb == val::undefined()) {
 		co_return (int) LIBUSB_ERROR_NOT_SUPPORTED;
 	}
+	std::cout << "Hello world 2" << std::endl;
 	// C++ equivalent of `await navigator.usb.getDevices()`. Note: at this point
 	// we must already have some devices exposed - caller must have called
 	// `await navigator.usb.requestDevice(...)` in response to user interaction
 	// before going to LibUSB. Otherwise this list will be empty.
-	auto web_usb_devices =
-		co_await_try(navigator_usb.call<val>("getDevices"));
+	auto web_usb_devices = ({                                                          
+		auto promise = navigator_usb.call<val>("getDevices");
+		std::cout << "Hello world 21" << std::endl;
+		PromiseResult result = co_await CaughtPromise(std::move(promise)); 
+		std::cout << "Hello world 22" << std::endl;
+		if (result.error) {                                     
+			co_return result.error;                            
+		}                                                  
+		std::cout << "Hello world 23" << std::endl;     
+		std::move(result.value);                                     
+	});
+	std::cout << "Hello world 3" << std::endl;
 	for (auto&& web_usb_device : web_usb_devices) {
 		auto session_id = getDeviceSessionId(web_usb_device);
+		std::cout << "Hello world 4" << std::endl;
 
 		auto dev = usbi_get_device_by_session_id(ctx, session_id);
+		std::cout << "Hello world 5" << std::endl;
 		if (dev == NULL) {
+			std::cout << "Hello world 6" << std::endl;
 			dev = usbi_alloc_device(ctx, session_id);
 			if (dev == NULL) {
 				usbi_err(ctx, "failed to allocate a new device structure");
 				continue;
 			}
+			std::cout << "Hello world 7" << std::endl;
 
 			auto statusVal = co_await CachedDevice::initFromDevice(
 				std::move(web_usb_device), dev);
@@ -635,6 +666,7 @@ val getDeviceList(libusb_context* ctx, discovered_devs** devs) {
 				libusb_unref_device(dev);
 				continue;
 			}
+			std::cout << "Hello world 8" << std::endl;
 
 			// We don't have real buses in WebUSB, just pretend everything
 			// is on bus 1.
@@ -642,9 +674,12 @@ val getDeviceList(libusb_context* ctx, discovered_devs** devs) {
 			// This can wrap around but it's the best approximation of a stable
 			// device address and port number we can provide.
 			dev->device_address = dev->port_number = (uint8_t)session_id;
+			std::cout << "Hello world 9" << std::endl;
 		}
 		*devs = discovered_devs_append(*devs, dev);
+		std::cout << "Hello world 10" << std::endl;
 		libusb_unref_device(dev);
+		std::cout << "Hello world 11" << std::endl;
 	}
 	co_return (int) LIBUSB_SUCCESS;
 }

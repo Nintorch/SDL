@@ -210,11 +210,14 @@ static EM_BOOL Emscripten_JoyStickConnected(int eventType, const EmscriptenGamep
     }
 #endif
 
-    // Use a generic VID/PID representing an XInput controller
-    if (!vendor && !product && is_xinput) {
-        vendor = USB_VENDOR_MICROSOFT;
-        product = USB_PRODUCT_XBOX360_XUSB_CONTROLLER;
-    }
+    item->trigger_rumble_available = MAIN_THREAD_EM_ASM_INT({
+        let gamepad = navigator['getGamepads']()[$0];
+        // This effect is not supported in Safari, so it's okay for us to check the vibrationActuator.effects array here for the browsers that do support it
+        if (!gamepad || !gamepad['vibrationActuator'] || !gamepad['vibrationActuator']['effects'] || !gamepad['vibrationActuator']['effects']['includes']('trigger-rumble')) {
+            return false;
+        }
+        return true;
+        }, item->index);
     
     os_id = SDL_GetEmscriptenOSID();
 
@@ -223,6 +226,21 @@ static EM_BOOL Emscripten_JoyStickConnected(int eventType, const EmscriptenGamep
             bus = SDL_HARDWARE_BUS_BLUETOOTH;
         } else { // Desktop
             bus = SDL_HARDWARE_BUS_USB;
+        }
+    }
+
+    if (!vendor && !product && is_xinput) {
+        // Use a generic VID/PID representing an XInput controller
+        vendor = USB_VENDOR_MICROSOFT;
+        product = USB_PRODUCT_XBOX360_XUSB_CONTROLLER;
+
+        if (item->trigger_rumble_available) {
+            // Assume Xbox One S Controller
+            if (bus == SDL_HARDWARE_BUS_BLUETOOTH) {
+                product = USB_PRODUCT_XBOX_ONE_S_REV1_BLUETOOTH;
+            } else {
+                product = USB_PRODUCT_XBOX_ONE_S;
+            }            
         }
     }
 
@@ -574,12 +592,6 @@ static bool EMSCRIPTEN_JoystickOpen(SDL_Joystick *joystick, int device_index)
     if (item->rumble_available) {
         SDL_SetBooleanProperty(SDL_GetJoystickProperties(joystick), SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN, true);
     }
-
-    item->trigger_rumble_available = MAIN_THREAD_EM_ASM_INT({
-        let gamepad = navigator['getGamepads']()[$0];
-        // This effect is not supported in Safari, so it's okay for us to check the vibrationActuator.effects array here for the browsers that do support it
-        return gamepad && 'vibrationActuator' in gamepad && 'effects' in gamepad['vibrationActuator'] && gamepad['vibrationActuator']['effects']['includes']('trigger-rumble');
-        }, item->index);
 
     if (item->trigger_rumble_available) {
         SDL_SetBooleanProperty(SDL_GetJoystickProperties(joystick), SDL_PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN, true);

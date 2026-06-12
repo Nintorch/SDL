@@ -587,7 +587,11 @@ static bool EMSCRIPTEN_JoystickOpen(SDL_Joystick *joystick, int device_index)
 
     item->rumble_available = MAIN_THREAD_EM_ASM_INT({
         let gamepad = navigator['getGamepads']()[$0];
-        return gamepad && 'vibrationActuator' in gamepad; // Don't check the vibrationActuator.effects array here, because it's not defined in Safari
+        // Don't check the vibrationActuator.effects array here, because it's not defined in Safari
+        if (!gamepad || !gamepad['vibrationActuator']) {
+            return false;
+        }
+        return true;
         }, item->index);
 
     if (item->rumble_available) {

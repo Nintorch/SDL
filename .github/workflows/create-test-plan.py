@@ -110,7 +110,7 @@ class JobSpec:
 
 
 JOB_SPECS = {
-    "emscripten": JobSpec(name="Emscripten",                                priority=True,  os=JobOs.UbuntuLatest,      platform=SdlPlatform.Emscripten,  artifact="SDL-emscripten", ),
+    "emscripten": JobSpec(name="Emscripten",                                priority=False,  os=JobOs.UbuntuLatest,      platform=SdlPlatform.Emscripten,  artifact="SDL-emscripten", ),
 }
 
 

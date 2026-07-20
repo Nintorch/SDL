@@ -110,7 +110,7 @@ class JobSpec:
 
 
 JOB_SPECS = {
-    "emscripten": JobSpec(name="Emscripten",                                priority=False,  os=JobOs.UbuntuLatest,      platform=SdlPlatform.Emscripten,  artifact="SDL-emscripten", ),
+    "msvc-x64": JobSpec(name="Windows (MSVC, x64)",                         priority=True,  os=JobOs.WindowsLatest,     platform=SdlPlatform.Msvc,        artifact="SDL-VC-x64",             msvc_arch=MsvcArch.X64,   msvc_project="VisualC/SDL.sln", ),
 }
 
 
@@ -909,7 +909,7 @@ def main():
     all_level_keys = (
         # Level 1
         (
-            "emscripten",
+            "msvc-x64",
         ),
     )
 

@@ -26,6 +26,7 @@
 #include "../usb_ids.h"
 #include "../../core/windows/SDL_windows.h"
 #include "../../core/windows/SDL_gameinput.h"
+#include <stdio.h>
 
 extern "C"
 {
@@ -625,6 +626,7 @@ static void CALLBACK GAMEINPUT_InternalSystemButtonCallback(
     SDL_Joystick *joystick = (SDL_Joystick *)context;
 
     GameInputSystemButtons changedButtons = (previousButtons ^ currentButtons);
+    printf("Hello world 2 %d %d %d\n", (int)currentButtons, (int)previousButtons, (int)changedButtons);
     if (changedButtons) {
         Uint64 timestamp = SDL_US_TO_NS(timestampUS + g_GameInputTimestampOffset);
 
@@ -675,7 +677,7 @@ static bool GAMEINPUT_JoystickOpen(SDL_Joystick *joystick, int device_index)
                 buttons |= GameInputSystemButtonShare;
             }
 
-            g_pGameInput->RegisterSystemButtonCallback(elem->device, buttons, joystick, GAMEINPUT_InternalSystemButtonCallback, &hwdata->system_button_callback_token);
+            printf("Hello world %d\n", (int)g_pGameInput->RegisterSystemButtonCallback(elem->device, buttons, joystick, GAMEINPUT_InternalSystemButtonCallback, &hwdata->system_button_callback_token));
         }
 #endif // GAMEINPUT_API_VERSION >= 1
     } else {

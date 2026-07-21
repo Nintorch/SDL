@@ -1520,23 +1520,6 @@ extern "C" {
 #define SDL_HINT_JOYSTICK_GAMEINPUT "SDL_JOYSTICK_GAMEINPUT"
 
 /**
- * A variable controlling whether GameInput driver should receive exclusive access
- * to the system buttons and read them.
- * This prevents other applications using GameInput to read the system buttons
- * if the current application is in focus.
- *
- * The variable can be set to the following values:
- *
- * - "0": (default).
- * - "1":
- *
- * This hint should be set before SDL is initialized.
- *
- * \since This hint is available since SDL 3.2.0.
- */
-#define SDL_HINT_JOYSTICK_GAMEINPUT_EXCLUSIVE_SYSTEM_BUTTONS "SDL_JOYSTICK_GAMEINPUT_EXCLUSIVE_SYSTEM_BUTTONS"
-
-/**
  * A variable controlling whether GameInput should be used for handling GIP
  * devices that require raw report processing, but aren't supported by HIDRAW,
  * such as Xbox One Guitars.

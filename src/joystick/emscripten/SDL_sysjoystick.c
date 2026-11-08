@@ -302,6 +302,7 @@ static EM_BOOL Emscripten_JoyStickConnected(int eventType, const EmscriptenGamep
     }
 
     SDL_GetEmscriptenNormalizedName(gamepadEvent->index, name, sizeof(name));
+    printf("\"%s\"\n", name);
     item->name = SDL_CreateJoystickName(vendor, product, NULL, name);
     if (!item->name) {
         SDL_free(item);

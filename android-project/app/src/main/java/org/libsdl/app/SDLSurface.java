@@ -350,7 +350,6 @@ public class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
                     p = 1.0f;
                 }
 
-                System.out.println("SDLPointer2 getPointerCount=" + event.getPointerCount() + " i=" + i + " tooltype=" + toolType + " getEventX=" + event.getAxisValue(MotionEvent.AXIS_X, i));
                 SDLActivity.onNativeTouch(touchDevId, pointerId, action, x, y, p);
             }
 

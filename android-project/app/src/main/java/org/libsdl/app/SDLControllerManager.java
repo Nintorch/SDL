@@ -7,7 +7,6 @@ import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.hardware.BatteryState;
 import android.hardware.input.InputManager;
 import android.hardware.input.InputManager.InputDeviceListener;
 import android.hardware.lights.Light;
@@ -991,7 +990,6 @@ class SDLGenericMotionListener_API14 implements View.OnGenericMotionListener {
 
         for (int i = 0; i < pointerCount; i++) {
             int toolType = event.getToolType(i);
-            System.out.println("SDLPointer getPointerCount=" + event.getPointerCount() + " i=" + i + " tooltype=" + toolType + " getEventX=" + getEventX(event, i) + " test=" + event.getAxisValue(MotionEvent.AXIS_X, i));
 
             if (toolType == MotionEvent.TOOL_TYPE_MOUSE) {
                 int buttonState = event.getButtonState();
